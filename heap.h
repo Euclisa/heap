@@ -38,8 +38,10 @@
 
 #define hp_root_ind 1
 
-// Restore heap properties of subtree with root 'i'. 'i' must be l-value expression.
-#define hp_heapify(heap,i,ret)                                                                                  \
+// Restore heap properties of subtree with root 'i'.
+#define hp_heapify(heap,ind,ret)                                                                                \
+{                                                                                                               \
+    long i = ind;                                                                                               \
     ret = HP_SUCCESS;                                                                                           \
     if(hp_empty(heap)) ret = HP_HEAP_EMPTY;                                                                     \
     if(!hp_in_heap(heap,i) && ret == HP_SUCCESS) ret = HP_INDEX_OUT_OF_RANGE;                                   \
@@ -58,10 +60,13 @@
             }                                                                                                   \
             else                                                                                                \
                 break;                                                                                          \
-        }
+        }                                                                                                       \
+}
 
-// Increases (MAX_HEAP) or decreases (MIN_HEAP) value of i-th element. 'i' must be l-value expression
-#define hp_change_key(heap,i,key,ret)                                                                           \
+// Increases (MAX_HEAP) or decreases (MIN_HEAP) value of i-th element.
+#define hp_change_key(heap,ind,key,ret)                                                                         \
+{                                                                                                               \
+    long i = ind;                                                                                               \
     ret = HP_SUCCESS;                                                                                           \
     if(!hp_in_heap(heap,i)) ret = HP_INDEX_OUT_OF_RANGE;                                                        \
     if(hp_compare(heap[i],key) && i != (hp_size(heap)) && ret == HP_SUCCESS) ret = HP_INVALID_KEY;              \
@@ -73,14 +78,14 @@
             hp_swap(heap,i,hp_parent(i))                                                                        \
             i = hp_parent(i);                                                                                   \
         }                                                                                                       \
-    }
+    }                                                                                                           \
+}
 
 // Inserts new element with value=key
 #define hp_insert(heap,key,ret)                                                                                 \
     hp_size(heap)++;                                                                                            \
     heap[hp_size(heap)] = key;                                                                                  \
-    long ind = hp_size(heap);                                                                                   \
-    hp_change_key(heap,ind,key,ret);
+    hp_change_key(heap,hp_size(heap),key,ret);
 
 // Removes max (MAX_HEAP) or min (MIN_HEAP) element from heap and puts it in 'out'
 #define hp_pop(heap,out,ret)                                                                                    \
@@ -93,8 +98,7 @@
         hp_size(heap)--;                                                                                        \
         if(!hp_empty(heap))                                                                                     \
         {                                                                                                       \
-            long ind = hp_root_ind;                                                                             \
-            hp_heapify(heap,ind,ret);                                                                           \
+            hp_heapify(heap,hp_root_ind,ret);                                                                   \
         }                                                                                                       \
     }
 
