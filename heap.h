@@ -27,6 +27,7 @@
 #define hp_left_child(i) (2*i)
 #define hp_right_child(i) (2*i+1)
 #define hp_parent(i) (i/2)
+#define hp_root 1
 
 #define hp_swap(heap,i,j)                                                                                       \
             heap[i] = heap[i] + heap[j];                                                                        \
@@ -34,8 +35,6 @@
             heap[i] = heap[i] - heap[j];
 
 #define hp_init(heap) heap[0] = 0;
-
-#define hp_root_ind 1
 
 // Restore heap properties of subtree with root 'i'.
 #define hp_heapify(heap,ind,ret)                                                                                \
@@ -72,7 +71,7 @@
     if(ret == HP_SUCCESS)                                                                                       \
     {                                                                                                           \
         heap[i] = key;                                                                                          \
-        while(i > hp_root_ind && hp_compare(heap[i],heap[hp_parent(i)]))                                        \
+        while(i > hp_root && hp_compare(heap[i],heap[hp_parent(i)]))                                        \
         {                                                                                                       \
             hp_swap(heap,i,hp_parent(i))                                                                        \
             i = hp_parent(i);                                                                                   \
@@ -92,12 +91,12 @@
     if(hp_empty(heap)) ret = HP_HEAP_EMPTY;                                                                     \
     if(ret == HP_SUCCESS)                                                                                       \
     {                                                                                                           \
-        out = heap[hp_root_ind];                                                                                \
-        heap[hp_root_ind] = heap[hp_size(heap)];                                                                \
+        out = heap[hp_root];                                                                                \
+        heap[hp_root] = heap[hp_size(heap)];                                                                \
         hp_size(heap)--;                                                                                        \
         if(!hp_empty(heap))                                                                                     \
         {                                                                                                       \
-            hp_heapify(heap,hp_root_ind,ret);                                                                   \
+            hp_heapify(heap,hp_root,ret);                                                                   \
         }                                                                                                       \
     }
 
