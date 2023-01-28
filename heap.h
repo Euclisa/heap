@@ -10,7 +10,6 @@
 #define HP_HEAP_EMPTY 1
 #define HP_INDEX_OUT_OF_RANGE 2
 #define HP_INVALID_KEY 3
-#define HP_BUFFER_OVERFLOW 4
 
 // Compare function
 #ifdef MIN_HEAP
@@ -29,9 +28,9 @@
 #define hp_right_child(i) (2*i+1)
 #define hp_parent(i) (i/2)
 
-#define hp_swap(heap,i,j)                                \
-            heap[i] = heap[i] + heap[j];                 \
-            heap[j] = heap[i] - heap[j];                 \
+#define hp_swap(heap,i,j)                                                                                       \
+            heap[i] = heap[i] + heap[j];                                                                        \
+            heap[j] = heap[i] - heap[j];                                                                        \
             heap[i] = heap[i] - heap[j];
 
 #define hp_init(heap) heap[0] = 0;
