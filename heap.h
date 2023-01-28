@@ -5,116 +5,97 @@
 #define MIN_HEAP
 //#define MAX_HEAP
 
-// Define heap comparable type
-typedef long hp_heap_type;
-
-// Define size of heap buffer
-#define HP_HEAP_MAX_CAPACITY 100
-
 // Return codes
 #define HP_SUCCESS 0
-#define HP_HEAP_EMPTY -1
-#define HP_INDEX_OUT_OF_RANGE -2
-#define HP_INVALID_KEY -3
-#define HP_BUFFER_OVERFLOW -4
-
-typedef struct
-{
-    long size;
-    hp_heap_type buffer[HP_HEAP_MAX_CAPACITY];
-} HEAP;
+#define HP_HEAP_EMPTY 1
+#define HP_INDEX_OUT_OF_RANGE 2
+#define HP_INVALID_KEY 3
+#define HP_BUFFER_OVERFLOW 4
 
 // Compare function
 #ifdef MIN_HEAP
-#define hp_compare(heap,a,b) (a < b)
+#define hp_compare(a,b) (a < b)
 #else
-#define hp_compare(heap,a,b) (a > b)
+#define hp_compare(a,b) (a > b)
 #endif
 
-#define hp_empty(heap) (!(heap)->size)
+#define hp_empty(heap) (heap[0] == 0)
 
-#define hp_size(heap) (heap)->size
+#define hp_size(heap) heap[0]
 
-#define hp_in_heap(heap,i) (i < hp_size(heap))
+#define hp_in_heap(heap,i) ((i <= hp_size(heap)) && (i > 0))
 
-#define hp_left_child(i) (2*i+1)
-#define hp_right_child(i) (2*i+2)
-#define hp_parent(i) ((i-1)/2)
+#define hp_left_child(i) (2*i)
+#define hp_right_child(i) (2*i+1)
+#define hp_parent(i) (i/2)
 
-#define hp_value(heap,i) (heap)->buffer[i]
+#define hp_swap(heap,i,j)                                \
+            heap[i] = heap[i] + heap[j];                 \
+            heap[j] = heap[i] - heap[j];                 \
+            heap[i] = heap[i] - heap[j];
 
-#define hp_swap(heap,i,j)                               \
-            hp_heap_type c;                             \
-            c = hp_value(heap,i);                       \
-            hp_value(heap,i) = hp_value(heap,j);        \
-            hp_value(heap,j) = c;
+#define hp_init(heap) heap[0] = 0;
 
-#define hp_init(heap) (heap)->size = 0;
+#define hp_root_ind 1
 
-#define hp_root_ind 0
-
-#define hp_root_value(heap) (heap)->buffer[hp_root_ind]
-
-// Restore heap properties of subtree with root 'i'
-static inline int hp_heapify(HEAP* heap, long i)
-{
-    if(hp_empty(heap)) return HP_HEAP_EMPTY;
-    if(i >= hp_size(heap)) return HP_INDEX_OUT_OF_RANGE;
-    while(1)
-    {
-        hp_heap_type largest = i;
-        if(hp_in_heap(heap,hp_left_child(i)) && hp_compare(heap,hp_value(heap,hp_left_child(i)),hp_value(heap,largest)))
-            largest = hp_left_child(i);
-        if(hp_in_heap(heap,hp_right_child(i)) && hp_compare(heap,hp_value(heap,hp_right_child(i)),hp_value(heap,largest)))
-            largest = hp_right_child(i);
-        if(largest != i)
-        {
-            hp_swap(heap,largest,i)
-            i = largest;
+// Restore heap properties of subtree with root 'i'. 'i' must be l-value expression.
+#define hp_heapify(heap,i,ret)                                                                                  \
+    ret = HP_SUCCESS;                                                                                           \
+    if(hp_empty(heap)) ret = HP_HEAP_EMPTY;                                                                     \
+    if(!hp_in_heap(heap,i) && ret == HP_SUCCESS) ret = HP_INDEX_OUT_OF_RANGE;                                   \
+    if(ret == HP_SUCCESS)                                                                                       \
+        while(1)                                                                                                \
+        {                                                                                                       \
+            long largest = i;                                                                                   \
+            if(hp_in_heap(heap,hp_left_child(i)) && hp_compare(heap[hp_left_child(i)],heap[largest]))           \
+                largest = hp_left_child(i);                                                                     \
+            if(hp_in_heap(heap,hp_right_child(i)) && hp_compare(heap[hp_right_child(i)],heap[largest]))         \
+                largest = hp_right_child(i);                                                                    \
+            if(largest != i)                                                                                    \
+            {                                                                                                   \
+                hp_swap(heap,largest,i)                                                                         \
+                i = largest;                                                                                    \
+            }                                                                                                   \
+            else                                                                                                \
+                break;                                                                                          \
         }
-        else
-            break;
+
+// Increases (MAX_HEAP) or decreases (MIN_HEAP) value of i-th element. 'i' must be l-value expression
+#define hp_change_key(heap,i,key,ret)                                                                           \
+    ret = HP_SUCCESS;                                                                                           \
+    if(!hp_in_heap(heap,i)) ret = HP_INDEX_OUT_OF_RANGE;                                                        \
+    if(hp_compare(heap[i],key) && i != (hp_size(heap)) && ret == HP_SUCCESS) ret = HP_INVALID_KEY;              \
+    if(ret == HP_SUCCESS)                                                                                       \
+    {                                                                                                           \
+        heap[i] = key;                                                                                          \
+        while(i > hp_root_ind && hp_compare(heap[i],heap[hp_parent(i)]))                                        \
+        {                                                                                                       \
+            hp_swap(heap,i,hp_parent(i))                                                                        \
+            i = hp_parent(i);                                                                                   \
+        }                                                                                                       \
     }
-
-    return HP_SUCCESS;
-}
-
-// Increases (MAX_HEAP) or decreases (MIN_HEAP) value of i-th element 
-static inline int hp_change_key(HEAP* heap, long i, hp_heap_type key)
-{
-    if(!hp_in_heap(heap,i)) return HP_INDEX_OUT_OF_RANGE;
-    if(hp_compare(heap,hp_value(heap,i),key) && i != (hp_size(heap)-1)) return HP_INVALID_KEY;
-    heap->buffer[i] = key;
-    while(i > 0 && hp_compare(heap,hp_value(heap,i),hp_value(heap,hp_parent(i))))
-    {
-        hp_swap(heap,i,hp_parent(i))
-        i = hp_parent(i);
-    }
-
-    return HP_SUCCESS;
-}
 
 // Inserts new element with value=key
-static inline int hp_insert(HEAP* heap, hp_heap_type key)
-{
-    if(hp_size(heap) >= HP_HEAP_MAX_CAPACITY) return HP_BUFFER_OVERFLOW;
-    hp_size(heap)++;
-    hp_value(heap,hp_size(heap)-1) = key;
-    hp_change_key(heap,hp_size(heap)-1,key);
-
-    return HP_SUCCESS;
-}
+#define hp_insert(heap,key,ret)                                                                                 \
+    hp_size(heap)++;                                                                                            \
+    heap[hp_size(heap)] = key;                                                                                  \
+    long ind = hp_size(heap);                                                                                   \
+    hp_change_key(heap,ind,key,ret);
 
 // Removes max (MAX_HEAP) or min (MIN_HEAP) element from heap and puts it in 'out'
-static inline int hp_pop(HEAP* heap, hp_heap_type* out)
-{
-    if(hp_empty(heap)) return HP_HEAP_EMPTY;
-    *out = hp_root_value(heap);
-    hp_size(heap)--;
-    hp_root_value(heap) = heap->buffer[hp_size(heap)];
-    hp_heapify(heap,hp_root_ind);
-
-    return HP_SUCCESS;
-}
+#define hp_pop(heap,out,ret)                                                                                    \
+    ret = HP_SUCCESS;                                                                                           \
+    if(hp_empty(heap)) ret = HP_HEAP_EMPTY;                                                                     \
+    if(ret == HP_SUCCESS)                                                                                       \
+    {                                                                                                           \
+        out = heap[hp_root_ind];                                                                                \
+        heap[hp_root_ind] = heap[hp_size(heap)];                                                                \
+        hp_size(heap)--;                                                                                        \
+        if(!hp_empty(heap))                                                                                     \
+        {                                                                                                       \
+            long ind = hp_root_ind;                                                                             \
+            hp_heapify(heap,ind,ret);                                                                           \
+        }                                                                                                       \
+    }
 
 #endif
