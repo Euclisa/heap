@@ -9,18 +9,19 @@
 typedef long hp_heap_type;
 
 // Define size of heap buffer
-#define HEAP_MAX_CAPACITY 100
+#define HP_HEAP_MAX_CAPACITY 100
 
 // Return codes
 #define HP_SUCCESS 0
 #define HP_HEAP_EMPTY -1
 #define HP_INDEX_OUT_OF_RANGE -2
 #define HP_INVALID_KEY -3
+#define HP_BUFFER_OVERFLOW -4
 
 typedef struct
 {
     long size;
-    hp_heap_type buffer[HEAP_MAX_CAPACITY];
+    hp_heap_type buffer[HP_HEAP_MAX_CAPACITY];
 } HEAP;
 
 // Compare function
@@ -42,10 +43,10 @@ typedef struct
 
 #define hp_value(heap,i) (heap)->buffer[i]
 
-#define hp_swap(heap,i,j)                           \
-            hp_heap_type c;                         \
-            c = hp_value(heap,i);                    \
-            hp_value(heap,i) = hp_value(heap,j);      \
+#define hp_swap(heap,i,j)                               \
+            hp_heap_type c;                             \
+            c = hp_value(heap,i);                       \
+            hp_value(heap,i) = hp_value(heap,j);        \
             hp_value(heap,j) = c;
 
 #define hp_init(heap) (heap)->size = 0;
@@ -96,6 +97,7 @@ static inline int hp_change_key(HEAP* heap, long i, hp_heap_type key)
 // Inserts new element with value=key
 static inline int hp_insert(HEAP* heap, hp_heap_type key)
 {
+    if(hp_size(heap) >= HP_HEAP_MAX_CAPACITY) return HP_BUFFER_OVERFLOW;
     hp_size(heap)++;
     hp_value(heap,hp_size(heap)-1) = key;
     hp_change_key(heap,hp_size(heap)-1,key);
